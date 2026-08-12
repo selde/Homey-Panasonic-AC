@@ -1,3 +1,5 @@
 Turn a Panasonic air conditioner into a proper smart-climate device. Set the temperature, operating mode and fan speed straight from Homey, and use them in Flows and schedules.
 
-Everything is sent through Homey's built-in infrared, so no extra hardware or cloud account is needed — just place Homey within line of sight of the indoor unit.
+Getting started: add the device (Devices → Add → this app), and place Homey within line of sight of the indoor unit. Everything is sent through Homey's built-in infrared, so no extra hardware or cloud account is needed.
+
+The unit has no built-in sensor. To also show room temperature (and humidity) on the device — as current → target — create a Flow using the action "Set the measured room temperature" (and "…humidity"), fed from any temperature sensor you already have in Homey. For example: when the sensor's temperature changes, set the measured room temperature.
