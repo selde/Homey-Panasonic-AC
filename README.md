@@ -36,12 +36,22 @@ npm run generate   # writes .homeycompose/signals/ir/panasonic_dke.json
 
 ## Capabilities
 
-| Capability           | Values                                   |
-| -------------------- | ---------------------------------------- |
-| `onoff`              | on / off                                 |
-| `target_temperature` | 16–30 °C (1° steps)                      |
-| `pana_mode`          | auto / heat / cool / dry / fan-only      |
-| `pana_fan`           | auto / low / medium / high               |
+| Capability            | Values                                   |
+| --------------------- | ---------------------------------------- |
+| `onoff`               | on / off                                 |
+| `target_temperature`  | 16–30 °C (1° steps)                      |
+| `pana_mode`           | auto / heat / cool / dry / fan-only      |
+| `pana_fan`            | auto / low / medium / high               |
+| `measure_temperature` | room temperature, fed from a Flow        |
+| `measure_humidity`    | room humidity, fed from a Flow (optional)|
+
+## Room temperature & humidity
+
+The unit has no sensor of its own. To show room temperature/humidity next to the
+setpoint (current → target), use the Flow actions **“Set the measured room
+temperature”** / **“…humidity”** — e.g. *when a sensor's temperature changes →
+set the measured room temperature*. The humidity capability is added the first
+time you set it.
 
 ## Install (developer mode)
 

@@ -18,19 +18,8 @@
   ],
   "brandColor": "#0056A0",
   "permissions": [
-    "homey:wireless:ir",
-    "homey:manager:api"
+    "homey:wireless:ir"
   ],
-  "api": {
-    "getSensors": {
-      "method": "GET",
-      "path": "/sensors"
-    },
-    "getAcDevices": {
-      "method": "GET",
-      "path": "/ac-devices"
-    }
-  },
   "author": {
     "name": "Joran Haugli",
     "email": "joran.haugli@g.inn.no"
@@ -52,6 +41,56 @@
     "small": "/assets/images/small.png",
     "large": "/assets/images/large.png",
     "xlarge": "/assets/images/xlarge.png"
+  },
+  "flow": {
+    "actions": [
+      {
+        "title": {
+          "en": "Set the measured room humidity"
+        },
+        "titleFormatted": {
+          "en": "Set the measured room humidity to [[humidity]] %"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=heatpump"
+          },
+          {
+            "name": "humidity",
+            "type": "number",
+            "min": 0,
+            "max": 100,
+            "step": 0.1
+          }
+        ],
+        "id": "set_room_humidity"
+      },
+      {
+        "title": {
+          "en": "Set the measured room temperature"
+        },
+        "titleFormatted": {
+          "en": "Set the measured room temperature to [[temperature]] °C"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=heatpump"
+          },
+          {
+            "name": "temperature",
+            "type": "number",
+            "min": -50,
+            "max": 100,
+            "step": 0.1
+          }
+        ],
+        "id": "set_room_temperature"
+      }
+    ]
   },
   "drivers": [
     {
