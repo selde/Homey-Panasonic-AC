@@ -1,7 +1,9 @@
 'use strict';
 
 const Homey = require('homey');
-const { cmdKey } = require('../../lib/cmd-keys');
+const Broadlink = require('kiwicam-broadlinkjs-rm');
+const { identifyRm4 } = require('../../lib/broadlink-identify');
+const { buildBroadlinkPacket, MODE, FAN } = require('../../lib/panasonic-jke');
 
 const SIGNAL_ID = 'panasonic_dke';
 const DEFAULTS = {
@@ -9,6 +11,14 @@ const DEFAULTS = {
   target_temperature: 22,
   pana_mode: 'heat',
   pana_fan: 'auto',
+};
+
+// Capability string values -> JKE protocol constants.
+const MODE_MAP = {
+  auto: MODE.AUTO, heat: MODE.HEAT, cool: MODE.COOL, dry: MODE.DRY, fan: MODE.FAN,
+};
+const FAN_MAP = {
+  auto: FAN.AUTO, low: FAN.LOW, med: FAN.MED, high: FAN.HIGH,
 };
 
 module.exports = class PanasonicDkeDevice extends Homey.Device {
@@ -27,6 +37,24 @@ module.exports = class PanasonicDkeDevice extends Homey.Device {
 
     await this._ensureDefaults();
 
+    // --- Broadlink RM4 connection (JKE units are sent over the network
+    // to the RM4, instead of through Homey's built-in IR blaster) ---
+    const rm4Ip = this.getSetting('rm4_ip');
+    if (rm4Ip) {
+      this.rm4Device = null;
+      this.broadlink = new Broadlink();
+      this.broadlink.on('deviceReady', (device) => {
+        if (device.host.address === rm4Ip) {
+          this.rm4Device = device;
+        }
+      });
+      identifyRm4(rm4Ip)
+        .then(({ mac, deviceType }) => {
+          this.broadlink.addDevice({ address: rm4Ip, port: 80 }, mac, deviceType);
+        })
+        .catch((err) => this.error('Could not identify RM4:', err.message));
+    }
+
     // Panasonic sends the whole state in one frame, so batch simultaneous
     // capability changes and emit a single IR command.
     this.registerMultipleCapabilityListener(
@@ -34,8 +62,6 @@ module.exports = class PanasonicDkeDevice extends Homey.Device {
       (values) => this._onCapabilities(values),
       500,
     );
-
-    this.log('Panasonic CS-E12DKEW device ready');
   }
 
   async _ensureDefaults() {
@@ -67,23 +93,50 @@ module.exports = class PanasonicDkeDevice extends Homey.Device {
     let temp = values.target_temperature ?? cur('target_temperature');
     temp = Math.min(30, Math.max(16, Math.round(temp)));
 
-    // Turning off: send OFF and stop.
     if ('onoff' in values && values.onoff === false) {
-      return this._send({ power: false });
+      await this._send({
+        power: false, mode, temp, fan,
+      });
+      await this.setCapabilityValue('onoff', false).catch(this.error);
+      return undefined;
     }
-    // Adjusting settings while off: just remember them, don't wake the unit.
-    if (!power) return undefined;
 
-    return this._send({
+    if (!power) {
+      // Off: remember the requested settings without sending IR or waking the unit.
+      if ('pana_mode' in values) await this.setCapabilityValue('pana_mode', mode).catch(this.error);
+      if ('pana_fan' in values) await this.setCapabilityValue('pana_fan', fan).catch(this.error);
+      if ('target_temperature' in values) await this.setCapabilityValue('target_temperature', temp).catch(this.error);
+      return undefined;
+    }
+
+    await this._send({
       power: true, mode, temp, fan,
     });
+
+    // Persist all four so Homey's stored state always matches what we
+    // actually sent — without this, values silently revert to stale
+    // defaults the next time the device page is (re)opened.
+    await this.setCapabilityValue('onoff', true).catch(this.error);
+    await this.setCapabilityValue('pana_mode', mode).catch(this.error);
+    await this.setCapabilityValue('pana_fan', fan).catch(this.error);
+    await this.setCapabilityValue('target_temperature', temp).catch(this.error);
+    return undefined;
   }
 
   async _send(state) {
-    if (!this.signal) throw new Error('IR blaster signal unavailable');
-    const key = cmdKey(state);
-    this.log('IR →', key);
-    await this.signal.cmd(key);
+    if (!this.rm4Device) {
+      this.error('Cannot send: RM4 not connected yet');
+      return;
+    }
+
+    const packet = buildBroadlinkPacket({
+      power: state.power,
+      mode: MODE_MAP[state.mode],
+      temp: state.temp,
+      fan: FAN_MAP[state.fan],
+    });
+
+    await this.rm4Device.sendData(packet);
   }
 
 };

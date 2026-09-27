@@ -1,5 +1,5 @@
 {
-  "name": { "en": "Panasonic CS-E12DKEW" },
+  "name": { "en": "Panasonic JKE" },
   "class": "airconditioning",
   "capabilities": ["onoff", "measure_temperature", "target_temperature", "pana_mode", "pana_fan"],
   "capabilitiesOptions": {
@@ -28,6 +28,21 @@
     {
       "id": "add_devices",
       "template": "add_devices"
+    }
+  ],
+  "settings": [
+    {
+      "type": "group",
+      "label": { "en": "Broadlink RM4" },
+      "children": [
+        {
+          "id": "rm4_ip",
+          "type": "text",
+          "label": { "en": "RM4 IP address" },
+          "value": "",
+          "hint": { "en": "Local IP address of the Broadlink RM4 that controls this heat pump, e.g. 10.47.102.129" }
+        }
+      ]
     }
   ]
 }

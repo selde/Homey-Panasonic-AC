@@ -1,6 +1,6 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
-  "id": "dev.haugli.panasonicac",
+  "id": "com.stian.panasonicjkerm4",
   "version": "1.1.0",
   "compatibility": ">=12.0.0",
   "sdk": 3,
@@ -8,10 +8,10 @@
     "local"
   ],
   "name": {
-    "en": "Panasonic AC (IR)"
+    "en": "Panasonic JKE (Broadlink RM4)"
   },
   "description": {
-    "en": "Smart climate control over infrared"
+    "en": "Smart climate control for Panasonic JKE heat pumps via a Broadlink RM4"
   },
   "category": [
     "climate"
@@ -95,7 +95,7 @@
   "drivers": [
     {
       "name": {
-        "en": "Panasonic CS-E12DKEW"
+        "en": "Panasonic JKE"
       },
       "class": "airconditioning",
       "capabilities": [
@@ -139,6 +139,27 @@
         {
           "id": "add_devices",
           "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "Broadlink RM4"
+          },
+          "children": [
+            {
+              "id": "rm4_ip",
+              "type": "text",
+              "label": {
+                "en": "RM4 IP address"
+              },
+              "value": "",
+              "hint": {
+                "en": "Local IP address of the Broadlink RM4 that controls this heat pump, e.g. 10.47.102.129"
+              }
+            }
+          ]
         }
       ],
       "id": "heatpump"

@@ -21,7 +21,7 @@ module.exports = class PanasonicDkeDriver extends Homey.Driver {
   async onPairListDevices() {
     return [
       {
-        name: 'Panasonic CS-E12DKEW',
+        name: 'Panasonic',
         data: { id: randomUUID() },
       },
     ];
