@@ -14,8 +14,8 @@ module.exports = class PanasonicDkeDriver extends Homey.Driver {
       .registerRunListener(({ device, humidity }) => device.setMeasured('measure_humidity', humidity));
 
     this.homey.flow.getActionCard('set_fan_speed')
-      .registerRunListener(async ({ device, fan_speed }) => {
-        return device.setFanSpeed(fan_speed);
+      .registerRunListener(async ({ device, fan_speed: fanSpeed }) => {
+        return device.setFanSpeed(fanSpeed);
       });
 
     this.homey.flow.getActionCard('set_mode')
