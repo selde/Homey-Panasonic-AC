@@ -13,7 +13,17 @@ module.exports = class PanasonicDkeDriver extends Homey.Driver {
     this.homey.flow.getActionCard('set_room_humidity')
       .registerRunListener(({ device, humidity }) => device.setMeasured('measure_humidity', humidity));
 
-    this.log('Panasonic CS-E12DKEW driver initialised');
+    this.homey.flow.getActionCard('set_fan_speed')
+      .registerRunListener(async ({ device, fan_speed }) => {
+        return device.setFanSpeed(fan_speed);
+      });
+
+    this.homey.flow.getActionCard('set_mode')
+      .registerRunListener(async ({ device, mode }) => {
+        return device.setMode(mode);
+      });
+
+    this.log('Panasonic driver initialised');
   }
 
   // No discovery for an IR device. Offer one unit to add, with a unique id so

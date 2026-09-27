@@ -77,6 +77,14 @@ module.exports = class PanasonicDkeDevice extends Homey.Device {
     await this.setCapabilityValue(capability, value);
   }
 
+  async setFanSpeed(fan) {
+    return this._onCapabilities({ pana_fan: fan });
+  }
+
+  async setMode(mode) {
+    return this._onCapabilities({ pana_mode: mode });
+  }
+
   async _onCapabilities(values) {
     const cur = (cap) => this.getCapabilityValue(cap);
 
