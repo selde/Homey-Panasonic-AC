@@ -1,104 +1,195 @@
-# Panasonic AC (IR) — Homey app
+# Panasonic JKE (BroadLink RM4) — Homey app
 
-Control a Panasonic air conditioner / heat pump from [Homey](https://homey.app)
-over infrared, using Homey's **built-in IR blaster**. The unit shows up as a
-normal climate device with on/off, target temperature, operating mode and fan
-speed — so you get the thermostat tile, Flows and schedules, without pasting raw
-IR codes.
+Control a Panasonic JKE air conditioner / heat pump from [Homey](https://homey.app) using a **BroadLink RM4 Mini** as the IR transmitter.
+
+The app presents the heat pump as a normal Homey climate device with on/off, target temperature, operating mode and fan speed. It can therefore be used with Homey Flows, schedules and the normal climate interface.
 
 ## Supported models
 
-| Model                | IR protocol | Status                        |
-| -------------------- | ----------- | ----------------------------- |
-| Panasonic CS-E12DKEW | DKE         | ✅ Verified on real hardware  |
+| Model                | Protocol      | Status                    |
+| -------------------- | ------------- | ------------------------- |
+| Panasonic CS-NE12JKE | Panasonic JKE | Verified on real hardware |
 
-Other Panasonic units using the **DKE** IR protocol are likely compatible but
-untested. Contributions adding and confirming further models are welcome.
+The JKE implementation is intended for Panasonic units using the same JKE IR protocol. Other models have not been verified and may use different protocol variants.
 
 ## How it works
 
-Panasonic air conditioners don't have a discrete "power on" code — every button
-press transmits the **entire state** (power + mode + temperature + fan) as one
-frame with a checksum. This app therefore computes the correct full-state frame
-for whatever combination you set and sends the matching Pronto HEX command.
+Panasonic air conditioners transmit the **complete unit state** in each IR command rather than using independent commands for individual settings.
 
-The IR encoder in [`lib/panasonic-dke.js`](lib/panasonic-dke.js) is a faithful
-port of the Panasonic **DKE** protocol from
-[IRremoteESP8266](https://github.com/crankyoldgit/IRremoteESP8266)
-(`ir_Panasonic.cpp`). The generated `HEAT / 22°C / auto` frame is byte-for-byte
-identical to a code verified working on a real CS-E12DKEW.
+The app therefore builds a complete JKE protocol frame containing:
 
-All command variants are pre-generated into the IR signal manifest:
+* Power state
+* Operating mode
+* Target temperature
+* Fan speed
+* Protocol checksum
 
-```bash
-npm run generate   # writes .homeycompose/signals/ir/panasonic_dke.json
+The resulting IR command is sent over the local network to the configured BroadLink RM4.
+
+The Homey app does not use Homey's built-in IR transmitter for JKE commands.
+
+## BroadLink RM4
+
+A BroadLink RM4 Mini must be available on the same local network as the Homey.
+
+During device setup, configure the local IP address of the RM4 that controls the heat pump.
+
+The device setting is:
+
+**BroadLink RM4 → RM4 IP address**
+
+Example:
+
+```text
+10.47.102.129
 ```
+
+A fixed or reserved IP address for the RM4 is recommended so that the Homey device does not lose contact with it after a DHCP lease changes.
 
 ## Capabilities
 
-| Capability            | Values                                   |
-| --------------------- | ---------------------------------------- |
-| `onoff`               | on / off                                 |
-| `target_temperature`  | 16–30 °C (1° steps)                      |
-| `pana_mode`           | auto / heat / cool / dry / fan-only      |
-| `pana_fan`            | auto / low / medium / high               |
-| `measure_temperature` | room temperature, fed from a Flow        |
-| `measure_humidity`    | room humidity, fed from a Flow (optional)|
+| Capability            | Values                                           |
+| --------------------- | ------------------------------------------------ |
+| `onoff`               | On / Off                                         |
+| `target_temperature`  | 16–30 °C, 1 °C steps                             |
+| `pana_mode`           | Auto / Heat / Cool / Dry / Fan only              |
+| `pana_fan`            | Auto / Low / Medium / High                       |
+| `measure_temperature` | Room temperature supplied by a Homey Flow        |
+| `measure_humidity`    | Optional humidity value supplied by a Homey Flow |
 
-## Room temperature & humidity
+## Room temperature and humidity
 
-The unit has no sensor of its own. To show room temperature/humidity next to the
-setpoint (current → target), use the Flow actions **“Set the measured room
-temperature”** / **“…humidity”** — e.g. *when a sensor's temperature changes →
-set the measured room temperature*. The humidity capability is added the first
-time you set it.
+The Panasonic unit does not provide its actual room temperature or humidity to Homey through this integration.
 
-## Install (developer mode)
+The `measure_temperature` capability can instead be updated from another Homey device using the Flow action:
 
-Requires [Node.js](https://nodejs.org), the
-[Homey CLI](https://apps.developer.homey.app/the-basics/getting-started) and a
-free Homey developer account. Homey and your computer must be on the same network.
+**Set the measured room temperature**
 
-```bash
-npm install -g homey
-homey login
-homey app run        # run live for testing
-# or
-homey app install    # install onto your Homey
-```
+Similarly, humidity can be supplied using:
 
-Then in the Homey app: **Devices → + → this app → Panasonic CS-E12DKEW**.
-Place Homey with line of sight to the indoor unit.
+**Set the measured room humidity**
+
+The humidity capability is added to the device when it is first used.
 
 ## Limitations
 
-- **One-way.** Homey sends but cannot read the unit's actual state (no IR
-  receiver). If someone uses the physical remote, Homey's shown state can drift
-  until the next command is sent.
-- Vertical swing is left at the unit's default; fan speeds are auto/low/med/high.
+### One-way communication
 
-## Development
+The integration is **one-way**.
+
+Homey can send commands to the heat pump through the BroadLink RM4, but it cannot read the current state of the physical unit or remote control.
+
+If the heat pump is operated using its original remote control, the state displayed by Homey can therefore become out of sync until another command is sent through Homey.
+
+### BroadLink dependency
+
+The heat pump requires a functioning BroadLink RM4 connection.
+
+If the RM4 is unavailable when a command is issued, the command cannot be transmitted.
+
+### Swing
+
+Vertical swing control is not currently implemented.
+
+## Installation
+
+This is a Homey SDK 3 application intended for local development and testing.
+
+Requirements:
+
+* Node.js
+* Homey CLI
+* A Homey developer account
+* A BroadLink RM4 Mini on the same local network as Homey
+
+Install the Homey CLI:
+
+```bash
+npm install -g homey
+```
+
+Log in:
+
+```bash
+homey login
+```
+
+Install the project dependencies:
 
 ```bash
 npm install
-npm run generate   # regenerate the IR command map from lib/panasonic-dke.js
-npm run images     # regenerate the app/driver artwork
-npm run lint       # eslint (eslint-config-athom)
-npm test           # unit + round-trip tests (node:test)
-npm run validate   # homey app validate --level publish
 ```
 
-The test suite decodes **all 245** generated Pronto HEX commands back into
-state frames and asserts the checksum and every field (power, mode, temperature,
-fan) match the command's label — so a bug in the encoder or generator fails CI
-rather than reaching hardware. It also pins the encoder against the exact
-byte sequence verified on a real CS-E12DKEW.
+Run the app for development:
 
-## Credits & licensing
+```bash
+homey app run
+```
 
-The Panasonic **DKE** protocol implementation in
-[`lib/panasonic-dke.js`](lib/panasonic-dke.js) is derived from
-[IRremoteESP8266](https://github.com/crankyoldgit/IRremoteESP8266) by David
-Conran and contributors (**LGPL-2.1**); that file is therefore licensed under
-**LGPL-2.1** (see [`LICENSE.LGPL-2.1`](LICENSE.LGPL-2.1) and [`NOTICE`](NOTICE)).
-All other original code is under the **MIT** license (see [`LICENSE`](LICENSE)).
+Or install it directly on the Homey:
+
+```bash
+homey app install
+```
+
+After installing the app, add a **Panasonic JKE** device in Homey and enter the local IP address of the BroadLink RM4 that controls the heat pump.
+
+## Development
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run the linter:
+
+```bash
+npm run lint
+```
+
+Run the test suite:
+
+```bash
+npm test
+```
+
+Validate the Homey app:
+
+```bash
+npm run validate
+```
+
+## Project structure
+
+The Panasonic JKE protocol implementation is located in:
+
+```text
+lib/panasonic-jke.js
+```
+
+BroadLink RM4 identification is handled by:
+
+```text
+lib/broadlink-identify.js
+```
+
+The Homey device driver is located in:
+
+```text
+drivers/heatpump/
+```
+
+## Credits and licensing
+
+This project is based on the original **Homey Panasonic AC** project by **Joran Haugli** (`haugli92`), with further development for Panasonic JKE units and BroadLink RM4 control.
+
+Original project:
+
+https://github.com/haugli92/Homey-Panasonic-AC
+
+This fork:
+
+https://github.com/selde/Homey-Panasonic-AC
+
+Please see the repository license and attribution files for licensing information.

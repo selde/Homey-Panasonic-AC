@@ -6,10 +6,10 @@ This product includes software derived from IRremoteESP8266
 and contributors, licensed under the GNU Lesser General Public License v2.1
 (LGPL-2.1).
 
-The Panasonic "DKE" protocol implementation in lib/panasonic-dke.js — the state
-layout, bit offsets, timing constants and checksum — is derived from that
+The Panasonic "JKE" protocol implementation in lib/panasonic-jke.js - the state
+layout, bit offsets, timing constants and checksum - is derived from that
 project's src/ir_Panasonic.cpp and src/ir_Panasonic.h. As a derived work,
-lib/panasonic-dke.js is licensed under LGPL-2.1 (see LICENSE.LGPL-2.1).
+lib/panasonic-jke.js is licensed under LGPL-2.1 (see LICENSE.LGPL-2.1).
 
 All other original code in this repository is licensed under the MIT License
 (see LICENSE).

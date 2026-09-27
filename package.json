@@ -4,17 +4,22 @@
   "description": "Homey app controlling a Panasonic heat pump over IR",
   "main": "app.js",
   "scripts": {
-    "generate": "node tools/generate-signals.js",
     "images": "python3 tools/make-images.py",
     "lint": "eslint .",
     "test": "node --test",
     "validate": "homey app validate --level publish"
   },
   "license": "MIT",
-  "author": "Joran Haugli <joran.haugli@g.inn.no>",
+  "author": "Joran Haugli",
+  "contributors": [
+    {
+      "name": "Stian Elde",
+      "email": "17789240+selde@users.noreply.github.com"
+    }
+  ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/haugli92/Homey-Panasonic-AC.git"
+    "url": "https://github.com/selde/Homey-Panasonic-AC.git"
   },
   "devDependencies": {
     "eslint": "^8.57.0",

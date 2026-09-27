@@ -5,7 +5,6 @@ const Broadlink = require('kiwicam-broadlinkjs-rm');
 const { identifyRm4 } = require('../../lib/broadlink-identify');
 const { buildBroadlinkPacket, MODE, FAN } = require('../../lib/panasonic-jke');
 
-const SIGNAL_ID = 'panasonic_dke';
 const DEFAULTS = {
   onoff: false,
   target_temperature: 22,
@@ -24,12 +23,6 @@ const FAN_MAP = {
 module.exports = class PanasonicDkeDevice extends Homey.Device {
 
   async onInit() {
-    try {
-      this.signal = this.homey.rf.getSignalInfrared(SIGNAL_ID);
-    } catch (err) {
-      this.error('Failed to acquire IR signal:', err);
-    }
-
     // Migrate devices added before measure_temperature existed.
     if (!this.hasCapability('measure_temperature')) {
       await this.addCapability('measure_temperature').catch(this.error);
@@ -94,9 +87,12 @@ module.exports = class PanasonicDkeDevice extends Homey.Device {
     temp = Math.min(30, Math.max(16, Math.round(temp)));
 
     if ('onoff' in values && values.onoff === false) {
-      await this._send({
+      const sent = await this._send({
         power: false, mode, temp, fan,
       });
+
+      if (!sent) return undefined;
+
       await this.setCapabilityValue('onoff', false).catch(this.error);
       return undefined;
     }
@@ -109,9 +105,11 @@ module.exports = class PanasonicDkeDevice extends Homey.Device {
       return undefined;
     }
 
-    await this._send({
+    const sent = await this._send({
       power: true, mode, temp, fan,
     });
+
+    if (!sent) return undefined;
 
     // Persist all four so Homey's stored state always matches what we
     // actually sent — without this, values silently revert to stale
@@ -126,7 +124,7 @@ module.exports = class PanasonicDkeDevice extends Homey.Device {
   async _send(state) {
     if (!this.rm4Device) {
       this.error('Cannot send: RM4 not connected yet');
-      return;
+      return false;
     }
 
     const packet = buildBroadlinkPacket({
@@ -137,6 +135,7 @@ module.exports = class PanasonicDkeDevice extends Homey.Device {
     });
 
     await this.rm4Device.sendData(packet);
+    return true;
   }
 
 };

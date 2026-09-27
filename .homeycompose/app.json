@@ -16,9 +16,6 @@
     "climate"
   ],
   "brandColor": "#0056A0",
-  "permissions": [
-    "homey:wireless:ir"
-  ],
   "author": {
     "name": "Joran Haugli",
     "email": "joran.haugli@g.inn.no"

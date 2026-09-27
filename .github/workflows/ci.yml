@@ -19,11 +19,6 @@ jobs:
 
       - run: npm ci
 
-      - name: Verify generated signals are up to date
-        run: |
-          npm run generate
-          git diff --exit-code .homeycompose/signals/ir/panasonic_dke.json
-
       - name: Lint
         run: npm run lint
 
