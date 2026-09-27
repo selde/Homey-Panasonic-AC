@@ -71,6 +71,31 @@ Similarly, humidity can be supplied using:
 
 The humidity capability is added to the device when it is first used.
 
+## Flow actions
+
+The integration provides Flow actions for controlling the heat pump:
+
+### Set fan speed
+
+Sets the fan speed to one of:
+
+* Auto
+* Low
+* Medium
+* High
+
+### Set mode
+
+Sets the operating mode to one of:
+
+* Auto
+* Heat
+* Cool
+* Dry
+* Fan only
+
+These actions use the same state handling and BroadLink transmission as changes made directly through the device capabilities.
+
 ## Limitations
 
 ### One-way communication
